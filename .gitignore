@@ -165,3 +165,5 @@ input.txt
 train.bin
 val.bin
 temp.md
+.outputs
+temp/

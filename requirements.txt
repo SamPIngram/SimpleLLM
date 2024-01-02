@@ -3,3 +3,4 @@ datasets
 tiktoken 
 tqdm
 streamlit
+wandb
