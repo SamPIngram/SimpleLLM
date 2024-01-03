@@ -1,5 +1,5 @@
 from . import get_input
-from . import trainer
+from .trainer import Trainer
 from . import configurator
 from . import models
 
