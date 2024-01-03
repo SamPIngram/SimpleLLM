@@ -4,3 +4,6 @@ tiktoken
 tqdm
 streamlit
 wandb
+torch 
+torchvision 
+torchaudio

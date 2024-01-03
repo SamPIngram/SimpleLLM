@@ -8,7 +8,7 @@ def auto_spec():
     if torch.cuda.is_available():
         device = 'cuda'
         compile = True
-    elif torch.mps.is_available():
+    elif torch.backends.mps.is_available():
         device = 'mps'
         compile = False
     else:
