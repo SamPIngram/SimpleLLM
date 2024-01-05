@@ -13,6 +13,7 @@ def openwebtext(subset="all"):
 
 def _get_text_dataset(name):
     """Returns the dataset as a list of strings."""
+    #TODO Move to HF data storage and retrieval. 
     if name == 'tiny_shakespeare':
         # download the tiny shakespeare dataset
         input_file_path = os.path.join(os.path.dirname(__file__), '..', 'input.txt')
