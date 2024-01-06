@@ -2,41 +2,64 @@ import os
 import numpy as np
 import requests
 import tiktoken
+from datasets import Dataset, load_dataset # huggingface datasets
+from simplellm.configurator import DataConfig
+from tqdm import tqdm
 
-def tiny_shakespeare():
-    """Returns the Tiny Shakespeare dataset."""
-    return _get_text_dataset('tiny_shakespeare')
+def tiny_shakespeare(config_fp=None):
+    """Gets the Tiny Shakespeare dataset."""
+    config = DataConfig(config_fp=config_fp)
+    dataset = load_dataset("SamPIngram/tinyshakespeare")
+    split_dataset = _split(dataset, config.test_size, config.seed, config.shuffle)
+    tokenize = _tokenize(split_dataset, config.num_proc)
+    _store(tokenize)
 
-def openwebtext(subset="all"):
-    """Returns the OpenWebText dataset."""
-    return _get_text_dataset(f'openwebtext{subset}')
+def openwebtext(config_fp=None, subset="all"):
+    """Gets the OpenWebText dataset."""
+    config = DataConfig(config_fp=config_fp)
+    dataset = load_dataset("openwebtext", num_proc=config.num_proc)
+    split_dataset = _split(dataset, config.test_size, config.seed, config.shuffle)
+    tokenize = _tokenize(split_dataset, config.num_proc)
+    _store(tokenize)
 
-def _get_text_dataset(name):
-    """Returns the dataset as a list of strings."""
-    #TODO Move to HF data storage and retrieval. 
-    if name == 'tiny_shakespeare':
-        # download the tiny shakespeare dataset
-        input_file_path = os.path.join(os.path.dirname(__file__), '..', 'input.txt')
-        if not os.path.exists(input_file_path):
-            data_url = 'https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt'
-            with open(input_file_path, 'w') as f:
-                f.write(requests.get(data_url).text)
+def _split(dataset: Dataset, test_size: float, seed: int, shuffle: bool):
+    """Splits a dataset into train and test sets."""
+    split_dataset = dataset["train"].train_test_split(test_size=test_size, seed=seed, shuffle=shuffle)
+    split_dataset['val'] = split_dataset.pop('test') # rename test to val
+    return split_dataset
 
-        with open(input_file_path, 'r') as f:
-            data = f.read()
-        n = len(data)
-        train_data = data[:int(n*0.9)]
-        val_data = data[int(n*0.9):]
+def _process(data):
+    enc = tiktoken.get_encoding("gpt2")
+    ids = enc.encode_ordinary(data['text'])
+    ids.append(enc.eot_token)
+    out = {'ids': ids, 'len': len(ids)}
+    return out
 
-        # encode with tiktoken gpt2 bpe
-        enc = tiktoken.get_encoding("gpt2")
-        train_ids = enc.encode_ordinary(train_data)
-        val_ids = enc.encode_ordinary(val_data)
-        print(f"train has {len(train_ids):,} tokens")
-        print(f"val has {len(val_ids):,} tokens")
+def _tokenize(dataset, num_proc):
+    return dataset.map(
+        _process,
+        remove_columns=['text'],
+        desc="tokenizing the splits",
+        num_proc=num_proc,
+    )
 
-        # export to bin files
-        train_ids = np.array(train_ids, dtype=np.uint16)
-        val_ids = np.array(val_ids, dtype=np.uint16)
-        train_ids.tofile(os.path.join(os.path.dirname(__file__), '..', 'train.bin'))
-        val_ids.tofile(os.path.join(os.path.dirname(__file__), '..', 'val.bin'))
+def _store(tokenized):
+    for split, dset in tokenized.items():
+        arr_len = np.sum(dset['len'], dtype=np.uint64)
+        filename = os.path.join(os.path.dirname(__file__), '..', f'{split}.bin')
+        dtype = np.uint16 # (can do since enc.max_token_value == 50256 is < 2**16)
+        arr = np.memmap(filename, dtype=dtype, mode='w+', shape=(arr_len,))
+        total_batches = 1024
+
+        idx = 0
+        for batch_idx in tqdm(range(total_batches), desc=f'writing {filename}'):
+            # Batch together samples for faster write
+            batch = dset.shard(num_shards=total_batches, index=batch_idx, contiguous=True).with_format('numpy')
+            arr_batch = np.concatenate(batch['ids'])
+            # Write into mmap
+            arr[idx : idx + len(arr_batch)] = arr_batch
+            idx += len(arr_batch)
+        arr.flush()
+
+if __name__ == "__main__":
+    pass

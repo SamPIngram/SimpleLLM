@@ -1,4 +1,16 @@
-out_dir = 'out-shakespeare'
+##################################################
+# Data config for Shakespeare
+##################################################
+test_size = 0.1
+seed = 110892
+shuffle = True
+dataset_key = 'train'
+num_proc = -1 # -1 for all, 1 for single process, 2 for two processes, etc.
+
+##################################################
+# Training config for Shakespeare
+##################################################
+out_dir = '.outputs/out-shakespeare'
 eval_interval = 250 # keep frequent because we'll overfit
 eval_iters = 200
 log_interval = 10 # don't print too too often
