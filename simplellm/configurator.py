@@ -1,5 +1,6 @@
 import torch
 import importlib
+import os
 
 def auto_spec():
     # -----------------------------------------------------------------------------
@@ -82,6 +83,39 @@ class TrainerConfig:
                 config[item] = module.__dict__[item]
             else:
                 config[item] = locals()[item]
+        return config
+    
+class DataConfig:
+    def __init__(self, config_fp=None):
+        self.config_fp = config_fp
+        for k,v in self.get().items():
+            setattr(self, k, v)
+
+    def __repr__(self):
+        return str(self.get())
+
+    def get(self):
+        # -----------------------------------------------------------------------------
+        test_size = 0.1
+        seed = 110892
+        shuffle = True
+        dataset_key = 'train'
+        num_proc = -1
+        # -----------------------------------------------------------------------------
+        if self.config_fp is not None:
+            spec = importlib.util.spec_from_file_location("user_config", self.config_fp)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+        # -----------------------------------------------------------------------------
+        config_keys = [k for k,v in locals().items() if not k.startswith('_') and k != "load" and isinstance(v, (int, float, bool, str))]
+        config = {}
+        for item in config_keys:
+            if self.config_fp is not None and item in module.__dict__:
+                config[item] = module.__dict__[item]
+            else:
+                config[item] = locals()[item]
+        if config['num_proc'] == -1:
+            config['num_proc'] = os.cpu_count()
         return config
 
 if __name__ == '__main__':
