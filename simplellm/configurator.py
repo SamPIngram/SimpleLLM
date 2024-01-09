@@ -118,5 +118,41 @@ class DataConfig:
             config['num_proc'] = os.cpu_count()
         return config
 
+class GeneratorConfig:
+    def __init__(self, config_fp=None):
+        self.config_fp = config_fp
+        for k,v in self.get().items():
+            setattr(self, k, v)
+
+    def __repr__(self):
+        return str(self.get())
+
+    def get(self):
+        # -----------------------------------------------------------------------------
+        init_from = 'resume' # either 'resume' (from an out_dir) or a gpt2 variant (e.g. 'gpt2-xl')
+        out_dir = 'out' # ignored if init_from is not 'resume'
+        start = "\n" # or "<|endoftext|>" or etc. Can also specify a file, use as: "FILE:prompt.txt"
+        num_samples = 10 # number of samples to draw
+        max_new_tokens = 500 # number of tokens generated in each sample
+        temperature = 0.8 # 1.0 = no change, < 1.0 = less random, > 1.0 = more random, in predictions
+        top_k = 200 # retain only the top_k most likely tokens, clamp others to have 0 probability
+        seed = 1337
+        to_file = None # if not None, saves output to a file instead of printing to stdout
+        device, dtype, compile = auto_spec()
+        # -----------------------------------------------------------------------------
+        if self.config_fp is not None:
+            spec = importlib.util.spec_from_file_location("user_config", self.config_fp)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+        # -----------------------------------------------------------------------------
+        config_keys = [k for k,v in locals().items() if not k.startswith('_') and k != "load" and isinstance(v, (int, float, bool, str))]
+        config = {}
+        for item in config_keys:
+            if self.config_fp is not None and item in module.__dict__:
+                config[item] = module.__dict__[item]
+            else:
+                config[item] = locals()[item]
+        return config
+
 if __name__ == '__main__':
     print(TrainerConfig(config_fp="configs/train_shakespeare.py"))
