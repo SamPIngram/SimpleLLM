@@ -49,7 +49,7 @@ warmup_iters = 100 # not super necessary potentially
 ##################################################
 # Training config for Shakespeare
 ##################################################
-init_from = 'resume' # either 'resume' (from an out_dir) or a gpt2 variant (e.g. 'gpt2-xl')
+# init_from = 'resume' # either 'resume' (from an out_dir) or a gpt2 variant (e.g. 'gpt2-xl')
 start = "\n" # or "<|endoftext|>" or etc. Can also specify a file, use as: "FILE:prompt.txt"
 num_samples = 10 # number of samples to draw
 max_new_tokens = 500 # number of tokens generated in each sample
