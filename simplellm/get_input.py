@@ -1,9 +1,9 @@
 import os
 import numpy as np
-import requests
 import tiktoken
 from datasets import Dataset, load_dataset # huggingface datasets
 from simplellm.configurator import DataConfig
+from simplellm.tokenizers import huggingface
 from tqdm import tqdm
 
 def from_file(fp, config_fp=None):

@@ -2,16 +2,15 @@ import os
 import pickle
 from contextlib import nullcontext
 import torch
-import tiktoken
 from simplellm.configurator import GeneratorConfig
 from simplellm.models.transformer import TransformerConfig, Transformer
-
+from transformers import AutoTokenizer
 
 class Generator:
     def __init__(self, config_fp=None):
         self.config = GeneratorConfig(config_fp=config_fp)
 
-    def generate(self, to_file=None):
+    def generate(self):
         torch.manual_seed(self.config.seed)
         torch.cuda.manual_seed(self.config.seed)
         torch.backends.cuda.matmul.allow_tf32 = True # allow tf32 on matmul
@@ -58,8 +57,8 @@ class Generator:
         else:
             # ok let's assume gpt-2 encodings by default
             print("No meta.pkl found, assuming GPT-2 encodings...")
-            enc = tiktoken.get_encoding("gpt2")
-            encode = lambda s: enc.encode(s, allowed_special={"<|endoftext|>"})
+            enc = AutoTokenizer.from_pretrained("gpt2", add_special_tokens=True)
+            encode = lambda s: enc.encode(s)
             decode = lambda l: enc.decode(l)
 
         # encode the beginning of the prompt
@@ -70,8 +69,8 @@ class Generator:
         x = (torch.tensor(start_ids, dtype=torch.long, device=self.config.device)[None, ...])
 
         # run generation
-        if self.config.to_file is not None:
-            with open(to_file, 'w', encoding='utf-8') as f:
+        if self.config.to_file is not False:
+            with open(self.config.to_file, 'w', encoding='utf-8') as f:
                 with torch.no_grad():
                     with ctx:
                         for k in range(self.config.num_samples):
