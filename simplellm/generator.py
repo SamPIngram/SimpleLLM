@@ -4,7 +4,7 @@ from contextlib import nullcontext
 import torch
 from simplellm.configurator import GeneratorConfig
 from simplellm.models.transformer import TransformerConfig, Transformer
-from transformers import AutoTokenizer
+import tiktoken
 
 class Generator:
     def __init__(self, config_fp=None):
@@ -57,8 +57,8 @@ class Generator:
         else:
             # ok let's assume gpt-2 encodings by default
             print("No meta.pkl found, assuming GPT-2 encodings...")
-            enc = AutoTokenizer.from_pretrained("gpt2", add_special_tokens=True)
-            encode = lambda s: enc.encode(s)
+            enc = tiktoken.get_encoding("gpt2")
+            encode = lambda s: enc.encode(s, allowed_special={"<|endoftext|>"})
             decode = lambda l: enc.decode(l)
 
         # encode the beginning of the prompt

@@ -3,7 +3,6 @@ import numpy as np
 import tiktoken
 from datasets import Dataset, load_dataset # huggingface datasets
 from simplellm.configurator import DataConfig
-from simplellm.tokenizers import huggingface
 from tqdm import tqdm
 
 def from_file(fp, config_fp=None):
@@ -17,7 +16,7 @@ def from_file(fp, config_fp=None):
     val_data = data[int(n*split):]
 
     # encode with tiktoken gpt2 bpe
-    enc = tiktoken.get_encoding("gpt2")
+    enc = tiktoken.get_encoding(config.tokenizer)
     train_ids = enc.encode_ordinary(train_data)
     val_ids = enc.encode_ordinary(val_data)
     print(f"train has {len(train_ids):,} tokens")

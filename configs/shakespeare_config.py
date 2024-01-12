@@ -6,7 +6,7 @@ seed = 110892
 shuffle = True
 dataset_key = 'train'
 num_proc = -1 # -1 for all, 1 for single process, 2 for two processes, etc.
-tokenizer = 'gpt2' # 'gpt2' or 'mistral' or any hugging-face auto-tokenizer name
+tokenizer = 'gpt2' # 'gpt2' or 'cl100k_base' or 'gpt-4'
 
 ##################################################
 # Training config for Shakespeare
@@ -48,7 +48,7 @@ warmup_iters = 100 # not super necessary potentially
 # compile = True # requires PyTorch 2.0 (optional), for mps this should be False
 
 ##################################################
-# Training config for Shakespeare
+# Generator config for Shakespeare
 ##################################################
 # init_from = 'resume' # either 'resume' (from an out_dir) or a gpt2 variant (e.g. 'gpt2-xl')
 start = "\n" # or "<|endoftext|>" or etc. Can also specify a file, use as: "FILE:prompt.txt"
