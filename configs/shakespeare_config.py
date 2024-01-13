@@ -43,9 +43,9 @@ beta2 = 0.99 # make a bit bigger because number of tokens per iter is small
 warmup_iters = 100 # not super necessary potentially
 
 # Device settings (can enforce here or allow SimpleLLM to auto-detect)
-# device = 'cuda' # examples: 'cpu', 'cuda', 'cuda:0', 'cuda:1' etc., or 'mps' on macbooks
-# dtype = 'bfloat16'
-# compile = True # requires PyTorch 2.0 (optional), for mps this should be False
+# device = 'cpu' # examples: 'cpu', 'cuda', 'cuda:0', 'cuda:1' etc., or 'mps' on macbooks
+# dtype = 'float16'
+# compile = False # requires PyTorch 2.0 (optional), for mps this should be False
 
 ##################################################
 # Generator config for Shakespeare
