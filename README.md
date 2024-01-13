@@ -18,6 +18,7 @@ pip install -r requirements.txt
 ## Usage
 SimpleLLM is designed to be as simple to use as possible. The following code snippet shows how to train a model on a text file and then generate text from it:
 ```python
+# demo.py
 import simplellm
 
 # Use a config file to set all the parameters
@@ -34,6 +35,19 @@ trainer.train()
 simplellm.Generator(config_fp=config).generate()
 ```
 
+This can run by running the following command in the root directory of the project:
+```bash
+python demo.py
+```
+Training can also be done using muiltiple GPUs by running the following command (correcting the number of GPUs):
+```bash
+torchrun --standalone --nproc_per_node=8 demo.py
+```
+Or if you have a multiple cluster of GPUs, you can run the following command (correcting the number of nodes, node rank, master address and master port):
+```bash
+$ torchrun --nproc_per_node=8 --nnodes=2 --node_rank=0 --master_addr=123.456.123.456 --master_port=1234 demo.py
+```
+
 ## Roadmap
 The following is a list of features that I would like to add to SimpleLLM in the future:
 - [x] Add a basic implementation of a language model
@@ -46,8 +60,6 @@ The following is a list of features that I would like to add to SimpleLLM in the
     - [ ] selective structured state space models
     - [ ] mixture of experts models
 - [ ] Add a tutorial notebook for each part of the process
-
-
 
 ## Contributing
 If you would like to contribute to SimpleLLM, please feel free to open a pull request. If you have any questions about the project, please feel free to open an issue.
