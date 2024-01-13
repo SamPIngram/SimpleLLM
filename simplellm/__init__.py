@@ -3,3 +3,4 @@ from .trainer import Trainer
 from . import configurator
 from . import models
 from .generator import Generator
+from . import app

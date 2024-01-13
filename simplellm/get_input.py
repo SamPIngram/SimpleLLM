@@ -44,6 +44,14 @@ def openwebtext(config_fp=None, subset="all"):
     tokenize = _tokenize(split_dataset, config.num_proc)
     _store(tokenize)
 
+def huggingface_dataset(dataset_name, config_fp=None):
+    """Gets a HuggingFace dataset."""
+    config = DataConfig(config_fp=config_fp)
+    dataset = load_dataset(dataset_name, num_proc=config.num_proc)
+    split_dataset = _split(dataset, config.test_size, config.seed, config.shuffle)
+    tokenize = _tokenize(split_dataset, config.num_proc)
+    _store(tokenize)
+
 def _split(dataset: Dataset, test_size: float, seed: int, shuffle: bool):
     """Splits a dataset into train and test sets."""
     split_dataset = dataset["train"].train_test_split(test_size=test_size, seed=seed, shuffle=shuffle)
