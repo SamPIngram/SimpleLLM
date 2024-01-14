@@ -13,8 +13,11 @@ from simplellm.configurator import TrainerConfig
 from simplellm.models.transformer import TransformerConfig, Transformer
 
 class Trainer:
-    def __init__(self, config_fp=None):
-        self.config = TrainerConfig(config_fp=config_fp)
+    def __init__(self, config_fp=None, config=None):
+        if config is not None:
+            self.config = config
+        else:
+            self.config = TrainerConfig(config_fp=config_fp)
 
     def train(self):
         # various inits, derived attributes, I/O setup
