@@ -11,7 +11,7 @@ tokenizer = 'gpt2' # 'gpt2' or 'cl100k_base' or 'gpt-4'
 ##################################################
 # Training config for Shakespeare
 ##################################################
-out_dir = 'out'
+out_dir = 'gpt2'
 eval_interval = 2000
 log_interval = 1
 eval_iters = 200

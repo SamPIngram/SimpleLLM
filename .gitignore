@@ -167,3 +167,4 @@ val.bin
 temp.md
 .outputs
 temp/
+gpt_train.py
