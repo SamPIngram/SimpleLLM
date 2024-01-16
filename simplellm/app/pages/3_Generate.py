@@ -7,6 +7,7 @@ from simplellm.configurator import GeneratorConfig
 import pandas as pd
 import threading
 import time
+import glob
 
 st.set_page_config(
     page_title="SimpleLLM",
@@ -20,6 +21,15 @@ if "GeneratorConfig" not in st.session_state:
 
 def raw_string(string):
     return string.encode("unicode_escape").decode("utf-8")
+
+def load_preset_config(config_fp):
+    st.session_state["config"] = GeneratorConfig(config_fp=config_fp)
+    print(f"Set config from: {config_fp}")
+
+def presets():
+    config_list = glob.glob("configs/*.py")
+    for config in config_list:
+        st.sidebar.button(os.path.basename(config), on_click=load_preset_config, args=(config,))
 
 def update_config():
     st.session_state["GeneratorConfig"].device = device
@@ -39,7 +49,12 @@ def generate(session_state_config):
 
 st.markdown("# Generate Text")
 
-st.sidebar.markdown("## Generate Configuration")
+st.sidebar.markdown("# Generate Configuration")
+
+st.sidebar.markdown("## Presets:")
+presets()
+st.sidebar.markdown("---")
+
 device = st.sidebar.selectbox("Device", ["cuda", "cpu", "mps"], ["cuda", "cpu", "mps"].index(st.session_state["config"].device))
 compile = st.sidebar.checkbox("Compile", st.session_state["config"].compile)
 dtype = st.sidebar.selectbox("Data Type", ["float16", "bfloat16"], ["float16", "bfloat16"].index(st.session_state["config"].dtype))
