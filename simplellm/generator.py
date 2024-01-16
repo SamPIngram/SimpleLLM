@@ -7,10 +7,13 @@ from simplellm.models.transformer import TransformerConfig, Transformer
 import tiktoken
 
 class Generator:
-    def __init__(self, config_fp=None):
-        self.config = GeneratorConfig(config_fp=config_fp)
-
-    def generate(self):
+    def __init__(self, config_fp=None, config=None):
+        if config is not None:
+            self.config = config
+        else:
+            self.config = GeneratorConfig(config_fp=config_fp)
+    # TODO: get generate() to work with the mps backend
+    def generate(self, pipe_stdout_to_gui=False):
         torch.manual_seed(self.config.seed)
         torch.cuda.manual_seed(self.config.seed)
         torch.backends.cuda.matmul.allow_tf32 = True # allow tf32 on matmul
@@ -48,6 +51,9 @@ class Generator:
             load_meta = os.path.exists(meta_path)
         if load_meta:
             print(f"Loading meta from {meta_path}...")
+            if pipe_stdout_to_gui:
+                with open("stdout.txt", "a") as f:
+                    f.write(f"\nLoading meta from {meta_path}...")
             with open(meta_path, 'rb') as f:
                 meta = pickle.load(f)
             # TODO want to make this more general to arbitrary encoder/decoder schemes
@@ -57,6 +63,9 @@ class Generator:
         else:
             # ok let's assume gpt-2 encodings by default
             print("No meta.pkl found, assuming GPT-2 encodings...")
+            if pipe_stdout_to_gui:
+                with open("stdout.txt", "a") as f:
+                    f.write(f"\nNo meta.pkl found, assuming GPT-2 encodings...")
             enc = tiktoken.get_encoding("gpt2")
             encode = lambda s: enc.encode(s, allowed_special={"<|endoftext|>"})
             decode = lambda l: enc.decode(l)
@@ -77,6 +86,9 @@ class Generator:
                             y = model.generate(x, self.config.max_new_tokens, temperature=self.config.temperature, top_k=self.config.top_k)
                             f.write(decode(y[0].tolist()))
                             f.write('\n---------------\n')
+                            if pipe_stdout_to_gui:
+                                with open("stdout.txt", "a") as f:
+                                    f.write(decode(y[0].tolist())+'\n---------------\n')
         else:
             with torch.no_grad():
                 with ctx:
@@ -84,3 +96,6 @@ class Generator:
                         y = model.generate(x, self.config.max_new_tokens, temperature=self.config.temperature, top_k=self.config.top_k)
                         print(decode(y[0].tolist()))
                         print('---------------')
+                        if pipe_stdout_to_gui:
+                                with open("stdout.txt", "a") as f:
+                                    f.write(decode(y[0].tolist())+'\n---------------\n')
