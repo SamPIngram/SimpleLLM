@@ -1,7 +1,10 @@
 import streamlit as st
 import json
 from datetime import datetime
+import os
+import glob
 
+# TODO finish session management system for webapp
 st.set_page_config(
     page_title="SimpleLLM",
     page_icon="🪄",
@@ -9,6 +12,29 @@ st.set_page_config(
 
 if "session_loaded" not in st.session_state:
     st.session_state["session_loaded"] = False
+
+def save_session_state():
+    # Get the directory of the current script
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    # Create a path to the session_state.json file in the same directory
+    file_path = os.path.join(dir_path, 'sessions/session_state.json')
+
+    with open(file_path, 'w') as f:
+        # Convert the session state to a dictionary and then save it as JSON
+        json.dump(st.session_state._get_state(), f)
+
+def load_session_state():
+    # Get the directory of the current script
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    # Create a path to the session_state.json file in the same directory
+    file_path = os.path.join(dir_path, 'sessions/session_state.json')
+
+    with open(file_path, 'r') as f:
+        state = json.load(f)
+
+    # Update the session state with the loaded state
+    for key, value in state.items():
+        st.session_state[key] = value
 
 def open_session():
     st.session_state["session_loaded"] = True
