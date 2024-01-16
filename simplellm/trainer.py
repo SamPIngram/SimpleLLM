@@ -19,7 +19,7 @@ class Trainer:
         else:
             self.config = TrainerConfig(config_fp=config_fp)
 
-    def train(self):
+    def train(self, pipe_stdout_to_gui=False):
         # various inits, derived attributes, I/O setup
         ddp = int(os.environ.get('RANK', -1)) != -1 # is this a ddp run?
         if ddp:
@@ -42,6 +42,9 @@ class Trainer:
             ddp_world_size = 1
         tokens_per_iter = self.config.gradient_accumulation_steps * ddp_world_size * self.config.batch_size * self.config.block_size
         print(f"tokens per iteration will be: {tokens_per_iter:,}")
+        if pipe_stdout_to_gui:
+            with open("stdout.txt", "a") as f:
+                f.write(f"\ntokens per iteration will be: {tokens_per_iter:,}")
 
         if master_process:
             os.makedirs(self.config.out_dir, exist_ok=True)
@@ -82,6 +85,9 @@ class Trainer:
                 meta = pickle.load(f)
             meta_vocab_size = meta['vocab_size']
             print(f"found vocab_size = {meta_vocab_size} (inside {meta_path})")
+            if pipe_stdout_to_gui:
+                with open("stdout.txt", "a") as f:
+                    f.write(f"\nfound vocab_size = {meta_vocab_size} (inside {meta_path})")
 
         # model init
         model_args = dict(n_layer=self.config.n_layer, n_head=self.config.n_head, n_embd=self.config.n_embd, block_size=self.config.block_size,
@@ -89,14 +95,23 @@ class Trainer:
         if self.config.init_from == 'scratch':
             # init a new model from scratch
             print("Initializing a new model from scratch")
+            if pipe_stdout_to_gui:
+                with open("stdout.txt", "a") as f:
+                    f.write("\nInitializing a new model from scratch")
             # determine the vocab size we'll use for from-scratch training
             if meta_vocab_size is None:
-                print("defaulting to vocab_size of GPT-2 to 50304 (50257 rounded up for efficiency)")
+                print("Defaulting to vocab_size of GPT-2 to 50304 (50257 rounded up for efficiency)")
+                if pipe_stdout_to_gui:
+                    with open("stdout.txt", "a") as f:
+                        f.write("\nDefaulting to vocab_size of GPT-2 to 50304 (50257 rounded up for efficiency)")
             model_args['vocab_size'] = meta_vocab_size if meta_vocab_size is not None else 50304
             transformer_conf = TransformerConfig(**model_args)
             model = Transformer(transformer_conf)
         elif self.config.init_from == 'resume':
             print(f"Resuming training from {self.config.out_dir}")
+            if pipe_stdout_to_gui:
+                with open("stdout.txt", "a") as f:
+                    f.write(f"\nResuming training from {self.config.out_dir}")
             # resume training from a checkpoint.
             ckpt_path = os.path.join(self.config.out_dir, 'ckpt.pt')
             checkpoint = torch.load(ckpt_path, map_location=device)
@@ -120,6 +135,9 @@ class Trainer:
             best_val_loss = checkpoint['best_val_loss']
         elif self.config.init_from.startswith('gpt2'):
             print(f"Initializing from OpenAI GPT-2 weights: {self.config.init_from}")
+            if pipe_stdout_to_gui:
+                with open("stdout.txt", "a") as f:
+                    f.write(f"\nInitializing from OpenAI GPT-2 weights: {self.config.init_from}")
             # initialize from OpenAI GPT-2 weights
             override_args = dict(dropout=self.config.dropout)
             model = Transformer.load_pretrained_gpt(self.config.init_from, override_args)
@@ -144,6 +162,9 @@ class Trainer:
         # compile the model
         if self.config.compile:
             print("compiling the model... (takes a ~minute)")
+            if pipe_stdout_to_gui:
+                with open("stdout.txt", "a") as f:
+                    f.write("\ncompiling the model... (takes a ~minute)")
             unoptimized_model = model
             model = torch.compile(model) # requires PyTorch 2.0
 
@@ -203,6 +224,9 @@ class Trainer:
             if iter_num % self.config.eval_interval == 0 and master_process:
                 losses = estimate_loss()
                 print(f"step {iter_num}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}")
+                if pipe_stdout_to_gui:
+                    with open("stdout.txt", "a") as f:
+                        f.write(f"\nstep {iter_num}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}")
                 if self.config.wandb_log:
                     wandb.log({
                         "iter": iter_num,
@@ -223,6 +247,9 @@ class Trainer:
                             'config': self.config.__dict__,
                         }
                         print(f"saving checkpoint to {self.config.out_dir}")
+                        if pipe_stdout_to_gui:
+                            with open("stdout.txt", "a") as f:
+                                f.write(f"\nsaving checkpoint to {self.config.out_dir}")
                         torch.save(checkpoint, os.path.join(self.config.out_dir, 'ckpt.pt'))
             if iter_num == 0 and self.config.eval_only:
                 break
@@ -265,6 +292,9 @@ class Trainer:
                     mfu = raw_model.estimate_mfu(self.config.batch_size * self.config.gradient_accumulation_steps, dt)
                     running_mfu = mfu if running_mfu == -1.0 else 0.9*running_mfu + 0.1*mfu
                 print(f"iter {iter_num}: loss {lossf:.4f}, time {dt*1000:.2f}ms, mfu {running_mfu*100:.2f}%")
+                if pipe_stdout_to_gui:
+                    with open("stdout.txt", "a") as f:
+                        f.write(f"\niter {iter_num}: loss {lossf:.4f}, time {dt*1000:.2f}ms, mfu {running_mfu*100:.2f}%")
             iter_num += 1
             local_iter_num += 1
 

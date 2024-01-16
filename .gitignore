@@ -168,3 +168,4 @@ temp.md
 .outputs
 temp/
 gpt_train.py
+stdout.txt
