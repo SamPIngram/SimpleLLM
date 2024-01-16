@@ -12,7 +12,7 @@ class Generator:
             self.config = config
         else:
             self.config = GeneratorConfig(config_fp=config_fp)
-    # TODO: get generate() to work with the mps backend
+    
     def generate(self, pipe_stdout_to_gui=False):
         torch.manual_seed(self.config.seed)
         torch.cuda.manual_seed(self.config.seed)
@@ -88,7 +88,7 @@ class Generator:
                             f.write('\n---------------\n')
                             if pipe_stdout_to_gui:
                                 with open("stdout.txt", "a") as f:
-                                    f.write(decode(y[0].tolist())+'\n---------------\n')
+                                    f.write('\n'+decode(y[0].tolist())+'\n---------------\n')
         else:
             with torch.no_grad():
                 with ctx:
@@ -98,4 +98,4 @@ class Generator:
                         print('---------------')
                         if pipe_stdout_to_gui:
                                 with open("stdout.txt", "a") as f:
-                                    f.write(decode(y[0].tolist())+'\n---------------\n')
+                                    f.write('\n'+decode(y[0].tolist())+'\n---------------\n')
