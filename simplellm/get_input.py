@@ -4,10 +4,12 @@ import tiktoken
 from datasets import Dataset, load_dataset # huggingface datasets
 from simplellm.configurator import DataConfig
 from tqdm import tqdm
+import sys
 
-def from_file(fp, config_fp=None):
+def from_file(fp, config_fp=None, config=None, pipe_stdout_to_gui=False):
     """Gets the dataset from a file."""
-    config = DataConfig(config_fp=config_fp)
+    if config is None:
+        config = DataConfig(config_fp=config_fp)
     with open(fp, 'r') as f:
             data = f.read()
     n = len(data)
@@ -21,6 +23,10 @@ def from_file(fp, config_fp=None):
     val_ids = enc.encode_ordinary(val_data)
     print(f"train has {len(train_ids):,} tokens")
     print(f"val has {len(val_ids):,} tokens")
+    if pipe_stdout_to_gui:
+        with open("stdout.txt", "a") as f:
+            f.write(f"\ntrain has {len(train_ids):,} tokens")
+            f.write(f"\nval has {len(val_ids):,} tokens")
 
     # export to bin files
     train_ids = np.array(train_ids, dtype=np.uint16)
@@ -44,13 +50,19 @@ def openwebtext(config_fp=None, subset="all"):
     tokenize = _tokenize(split_dataset, config.num_proc)
     _store(tokenize)
 
-def huggingface_dataset(dataset_name, config_fp=None):
+def huggingface_dataset(dataset_name, config_fp=None, config=None, pipe_stdout_to_gui=False):
     """Gets a HuggingFace dataset."""
-    config = DataConfig(config_fp=config_fp)
-    dataset = load_dataset(dataset_name, num_proc=config.num_proc)
-    split_dataset = _split(dataset, config.test_size, config.seed, config.shuffle)
-    tokenize = _tokenize(split_dataset, config.num_proc)
-    _store(tokenize)
+    if config is None:
+        config = DataConfig(config_fp=config_fp)
+    original_stdout = sys.stdout
+    with open('stdout.txt', 'a') as f: # doesn't work with st.write
+        if pipe_stdout_to_gui:
+            sys.stdout = f
+        dataset = load_dataset(dataset_name, num_proc=config.num_proc)
+        split_dataset = _split(dataset, config.test_size, config.seed, config.shuffle)
+        tokenize = _tokenize(split_dataset, config.num_proc)
+        _store(tokenize)
+    sys.stdout = original_stdout
 
 def _split(dataset: Dataset, test_size: float, seed: int, shuffle: bool):
     """Splits a dataset into train and test sets."""

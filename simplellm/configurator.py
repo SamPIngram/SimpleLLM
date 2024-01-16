@@ -102,6 +102,7 @@ class DataConfig:
         dataset_key = 'train'
         num_proc = -1
         tokenizer = 'gpt2' # 'gpt2' 
+        dataset_url = "openwebtext"
         # -----------------------------------------------------------------------------
         if self.config_fp is not None:
             spec = importlib.util.spec_from_file_location("user_config", self.config_fp)

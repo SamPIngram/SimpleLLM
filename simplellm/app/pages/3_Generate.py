@@ -54,7 +54,7 @@ st.sidebar.markdown("# Generate Configuration")
 st.sidebar.markdown("## Presets:")
 presets()
 st.sidebar.markdown("---")
-
+st.sidebar.markdown("## Custom Configuration:")
 device = st.sidebar.selectbox("Device", ["cuda", "cpu", "mps"], ["cuda", "cpu", "mps"].index(st.session_state["config"].device))
 compile = st.sidebar.checkbox("Compile", st.session_state["config"].compile)
 dtype = st.sidebar.selectbox("Data Type", ["float16", "bfloat16"], ["float16", "bfloat16"].index(st.session_state["config"].dtype))
