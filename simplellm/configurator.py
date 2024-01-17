@@ -27,6 +27,11 @@ class TrainerConfig:
 
     def __repr__(self):
         return str(self.get())
+    
+    def from_dict(self, config_dict):
+        for k,v in config_dict.items():
+            setattr(self, k, v)
+        return self
 
     def get(self):
         # -----------------------------------------------------------------------------
@@ -93,6 +98,11 @@ class DataConfig:
 
     def __repr__(self):
         return str(self.get())
+    
+    def from_dict(self, config_dict):
+        for k,v in config_dict.items():
+            setattr(self, k, v)
+        return self
 
     def get(self):
         # -----------------------------------------------------------------------------
@@ -128,6 +138,11 @@ class GeneratorConfig:
 
     def __repr__(self):
         return str(self.get())
+    
+    def from_dict(self, config_dict):
+        for k,v in config_dict.items():
+            setattr(self, k, v)
+        return self
 
     def get(self):
         # -----------------------------------------------------------------------------
