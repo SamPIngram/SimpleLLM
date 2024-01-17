@@ -7,8 +7,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 from simplellm.configurator import TrainerConfig, DataConfig, GeneratorConfig
 import os
 import glob
+import pandas as pd
+import copy
 
-# TODO finish session management system for webapp
 st.set_page_config(
     page_title="SimpleLLM",
     page_icon="🪄",
@@ -22,16 +23,19 @@ if "session_loaded" not in st.session_state:
 def save_session_state(save_name):
     # Create a path to the session_state.json file in the same directory
     file_path = os.path.join(dir_path, f'sessions/{save_name}.json')
-
+    state_for_saving = {}
+    state_for_saving["session_name"] = st.session_state["session_name"]
+    state_for_saving["session_description"] = st.session_state["session_description"]
+    state_for_saving["session_loaded"] = st.session_state["session_loaded"]
     with open(file_path, 'w') as f:
         # Convert the session state to a dictionary and then save it as JSON
         if "config" in st.session_state:
-            st.sesson_state["config"] = st.session_state["config"].__dict__
+            state_for_saving["config"] = st.session_state["config"].__dict__
         if "DataConfig" in st.session_state:
-            st.session_state["DataConfig"] = st.session_state["DataConfig"].__dict__
+            state_for_saving["DataConfig"] = st.session_state["DataConfig"].__dict__
         if "GeneratorConfig" in st.session_state:
-            st.session_state["GeneratorConfig"] = st.session_state["GeneratorConfig"].__dict__
-        json.dump(st.session_state.to_dict(), f)
+            state_for_saving["GeneratorConfig"] = st.session_state["GeneratorConfig"].__dict__
+        json.dump(state_for_saving, f)
 
 def load_session_state():
     st.session_state.clear()
@@ -80,31 +84,7 @@ def recent_sessions():
         #     os.remove(session)
     return sorted_files
 
-def add_new_session(new_session_name, new_session_description):   
-    now = datetime.now()
-    # Format the date to ddmmyy
-    date_string = now.strftime("%d%m%y")
-    finding_new_session_name = True
-    idx = 0
-    new_session_key = f"{date_string}_{new_session_name}"
-    while finding_new_session_name:
-        if new_session_key not in sessions:
-            finding_new_session_name = False
-        else:
-            new_session_key = f"{date_string}_{new_session_name}_{idx}"
-            idx += 1
-    # st.session_state["session_name"] = new_session_key
-    # st.session_state["session_description"] = new_session_description
-    st.session_state["session_loaded"] = True
-
-def new_session(): # Not updating based on form input will look to solve this
-    with st.form(key="new_session_form", clear_on_submit=True):
-        st.session_state["session_name"] = st.text_input("Session Name", value="My Session")
-        st.session_state["session_description"] = st.text_input("Session Description", value="A description of my session")
-        submit_button = st.form_submit_button(label='Create Session', on_click=add_new_session, args=(st.session_state["session_name"], st.session_state["session_description"]))
-
 if st.session_state["session_loaded"] is False:
-    new_session = st.sidebar.button("New Session", on_click=new_session)
     st.sidebar.button("Load Session", on_click=load_session_state)
     st.sidebar.divider()
     st.sidebar.header("Recent Sessions:")
@@ -113,3 +93,52 @@ else:
     st.sidebar.button("Save Session", on_click=save_session_state, args=(st.session_state["session_name"],))
     st.sidebar.button("Unload Session", on_click=unload_session)
 
+
+
+if st.session_state["session_loaded"]:
+    session_name = st.text_input("Session Name", value=st.session_state["session_name"])
+    session_description = st.text_area("Session Description", value=st.session_state["session_description"])
+    with st.expander("Configurations"):
+
+        session_parms = {key: value for key, value in st.session_state.items() if key not in ["DataConfig", "config", "GeneratorConfig"]}
+        config_table = pd.DataFrame.from_dict(session_parms, orient='index', columns=['Value'], dtype=str)
+        st.markdown("## Session State:")
+        st.table(config_table)
+
+        if "DataConfig" in st.session_state:
+            data_config_table = pd.DataFrame.from_dict(st.session_state["DataConfig"].__dict__, orient='index', columns=['Value'], dtype=str)
+            st.markdown("## Data Config:")
+            st.table(data_config_table)
+
+        if "config" in st.session_state:
+            training_config_table = pd.DataFrame.from_dict(st.session_state["config"].__dict__, orient='index', columns=['Value'], dtype=str)
+            st.markdown("## Training Config:")
+            st.table(training_config_table)
+
+        if "GeneratorConfig" in st.session_state:
+            generator_config_table = pd.DataFrame.from_dict(st.session_state["GeneratorConfig"].__dict__, orient='index', columns=['Value'], dtype=str)
+            st.markdown("## Generator Config:")
+            st.table(generator_config_table)
+else:
+    session_name = st.text_input("Session Name", placeholder="Session Name")
+    session_description = st.text_area("Session Description", placeholder="Session Description")
+    if st.button("Create Session"):
+        now = datetime.now()
+        # Format the date to ddmmyy
+        date_string = now.strftime("%d%m%y")
+        finding_new_session_name = True
+        idx = 1
+        new_session_key = f"{date_string}_{session_name}"
+        session_name_list = [session.split('/')[-1].split('.json')[0] for session in sessions]
+        print(session_name_list)
+        while finding_new_session_name:
+            if new_session_key not in session_name_list:
+                finding_new_session_name = False
+            else:
+                new_session_key = f"{date_string}_{session_name}_{idx}"
+                idx += 1
+        st.session_state["session_name"] = new_session_key
+        st.session_state["session_description"] = session_description
+        st.session_state["session_loaded"] = True
+
+        st.experimental_rerun()
