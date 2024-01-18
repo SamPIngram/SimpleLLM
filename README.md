@@ -49,6 +49,16 @@ $ torchrun --nproc_per_node=8 --nnodes=2 --node_rank=0 --master_addr=123.456.123
 ```
 
 ## WebApp
+
+SimpleLLM also includes a basic GUI for running experiments. This can be run by running the following code snippet:
+```python
+import simplellm
+
+simplellm.app.run()
+```
+
+or by running the following command in the root directory of the project:
+
 ```bash
 python gui.py
 ```
