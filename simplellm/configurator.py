@@ -37,7 +37,7 @@ class TrainerConfig:
         # -----------------------------------------------------------------------------
         # default config values designed to train a gpt2 (124M) on OpenWebText
         # I/O
-        out_dir = 'out'
+        out_dir = '.outputs/out'
         eval_interval = 2000
         log_interval = 1
         eval_iters = 200
@@ -147,7 +147,7 @@ class GeneratorConfig:
     def get(self):
         # -----------------------------------------------------------------------------
         init_from = 'resume' # either 'resume' (from an out_dir) or a gpt2 variant (e.g. 'gpt2-xl')
-        out_dir = 'out' # ignored if init_from is not 'resume'
+        out_dir = '.outputs/out' # ignored if init_from is not 'resume'
         start = "\n" # or "<|endoftext|>" or etc. Can also specify a file, use as: "FILE:prompt.txt"
         num_samples = 10 # number of samples to draw
         max_new_tokens = 500 # number of tokens generated in each sample
