@@ -35,7 +35,7 @@ trainer.train()
 simplellm.Generator(config_fp=config).generate()
 ```
 
-This can run by running the following command in the root directory of the project:
+This can be run by the following command in the root directory of the project:
 ```bash
 python demo.py
 ```
