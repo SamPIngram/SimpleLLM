@@ -10,6 +10,11 @@ SimpleLLM is currently only available on GitHub, so you will need to clone the r
 ```
 git clone https://github.com/SamPIngram/SimpleLLM.git
 ```
+Create a virtual environment for the project by running the following command in the root directory of the project:
+```bash
+python -m venv venv
+source venv/bin/activate
+```
 Once you have cloned the repository, you can install the required packages by running the following command in the root directory of the project:
 ```
 pip install -r requirements.txt
