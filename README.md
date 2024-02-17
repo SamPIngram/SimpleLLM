@@ -3,7 +3,7 @@
 ![](media/ReadmeLogo.png?raw=true)
 
 ## Preamble
-SimpleLLM is a basic implementation for training Large Language Models. This project will aim to include both a working module for training and generating text from created language models, as well as a series of tutorial notebooks for explaining each part of the process. The initial implmentation will be loosely based on the incredible work of the [NanoGPT project](https://github.com/karpathy/nanoGPT), but will be expanded to include more model architectures (e.g. selective  structured state space models) and a more modular design (multiple tokenizers and tools for running experiments).
+SimpleLLM is a simple framework for training Large Language Models. This project will aim to include both a working module for training and generating text from created language models, as well as a series of tutorial notebooks for explaining each part of the process. The initial implmentation will be loosely based on the incredible work of the [NanoGPT project](https://github.com/karpathy/nanoGPT), but will be expanded to include more model architectures (e.g. selective  structured state space models) and a more modular design (multiple tokenizers and tools for running experiments).
 
 ## Installation
 SimpleLLM is currently only available on GitHub, so you will need to clone the repository to use it. You can do this by running the following command in your terminal:
